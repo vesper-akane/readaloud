@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Readaloud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#f3f5f4; --paper:#ffffff; --ink:#18221f; --muted:#5d6b67; --line:#d8dfdc;
+  --accent:#1d6b62; --accent-ink:#ffffff; --accent-soft:#dcece8; --warm:#b5562b; --star:#c8841a;
+  --zh:#1d6b62; --ja:#9b3f5c; --en:#3d5a99; --fr:#8a6412; --de:#6b4fa0; --es:#a3402e; --it:#3f7a2e;
+  --sans:"PingFang SC","Hiragino Sans","Noto Sans CJK SC","Microsoft YaHei","Yu Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#111715; --paper:#18201e; --ink:#e6ecea; --muted:#95a39f; --line:#2c3835;
+    --accent:#5cc0b1; --accent-ink:#0d1a17; --accent-soft:#1f3632; --warm:#e08a5f; --star:#f0b54a;
+    --zh:#5cc0b1; --ja:#e28aa6; --en:#8fa9e6; --fr:#e0b458; --de:#b39ce8; --es:#ee8f7a; --it:#8fcf7a;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#111715; --paper:#18201e; --ink:#e6ecea; --muted:#95a39f; --line:#2c3835;
+  --accent:#5cc0b1; --accent-ink:#0d1a17; --accent-soft:#1f3632; --warm:#e08a5f; --star:#f0b54a;
+  --zh:#5cc0b1; --ja:#e28aa6; --en:#8fa9e6; --fr:#e0b458; --de:#b39ce8; --es:#ee8f7a; --it:#8fcf7a;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 130px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+header .h{flex:1;min-width:16em}
+header h1{margin:0;font-size:24px;font-weight:600;letter-spacing:.01em;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
+.ui{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.ui select{width:auto}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;font-family:var(--mono)}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec + .sec{border-top:1px solid var(--line);padding-top:14px}
+textarea{width:100%;min-height:150px;resize:vertical;font:inherit;font-size:16px;line-height:1.7;color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea:focus,select:focus,input:focus-visible,button:focus-visible,li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:13.5px;padding:6px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.setting{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.setting label{font-size:14px}
+.setting output{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent)}
+.setting input{grid-column:1 / -1}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.voices{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center}
+.voices span{font-size:13px;font-weight:600;white-space:nowrap}
+select{width:100%;min-width:0;font:inherit;font-size:13px;color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:6px;padding:5px 6px}
+.note{font-size:13px;color:var(--warm)}
+.btn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:6px 11px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.tools{display:flex;flex-direction:column;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.listhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.markbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.markcount{font-size:13.5px;font-weight:600;color:var(--star);margin-right:auto}
+.toast{font-size:13px;color:var(--accent);min-height:1.2em}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:6px}
+li:last-child{border-bottom:0}
+li:hover{background:var(--ground)}
+li.now{background:var(--accent-soft)}
+li.dim{opacity:.45}
+li .n{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:4px;font-variant-numeric:tabular-nums}
+.rep{font-family:var(--mono);font-size:11px;color:var(--accent);display:block}
+.texts{display:flex;flex-direction:column;gap:3px;min-width:0}
+.o{font-size:17px;line-height:1.6;word-break:break-word}
+.t{font-size:14.5px;line-height:1.55;color:var(--muted);word-break:break-word}
+.t.missing{font-style:italic;opacity:.6}
+.speaking{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:4px}
+.veil{filter:blur(6px);user-select:none;cursor:help}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.tags{display:flex;gap:4px}
+.tag{font-family:var(--mono);font-size:11px;border:1px solid currentColor;border-radius:4px;padding:0 5px;line-height:1.5}
+.tag.zh{color:var(--zh)} .tag.ja{color:var(--ja)} .tag.en{color:var(--en)} .tag.fr{color:var(--fr)} .tag.de{color:var(--de)} .tag.es{color:var(--es)} .tag.it{color:var(--it)}
+.star{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 4px;border-radius:6px}
+.star[aria-pressed="true"]{color:var(--star)}
+.warn{font-size:13px;color:var(--warm)}
+.empty{color:var(--muted);font-size:14px;padding:12px 4px;display:block;cursor:default}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.bar .in{max-width:1120px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.play{font:inherit;font-size:16px;font-weight:600;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);padding:10px 20px;cursor:pointer;min-width:7.5em}
+.ic{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 13px;cursor:pointer}
+.status{flex:1;min-width:9em;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){li{transition:background .2s}.veil{transition:filter .2s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="h">
+      <h1 data-i18n="h1"></h1>
+      <p data-i18n="sub"></p>
+    </div>
+    <label class="ui"><span data-i18n="uiLang"></span>
+      <select id="uiLang" data-i18n-aria="uiLang">
+        <option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="es">Español</option><option value="it">Italiano</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="inLbl">
+      <div class="sec">
+        <div class="label" id="inLbl" data-i18n="orig"></div>
+        <textarea id="text" data-i18n-ph="origPh" aria-labelledby="inLbl"></textarea>
+        <div class="label" id="trLbl" data-i18n="trans"></div>
+        <textarea id="trans" data-i18n-ph="transPh" aria-labelledby="trLbl"></textarea>
+        <div class="row" style="justify-content:space-between">
+          <div class="row">
+            <span class="field" data-i18n="splitBy"></span>
+            <div class="seg" role="group" id="splitSeg">
+              <button type="button" data-v="sentence" data-i18n="bySentence"></button>
+              <button type="button" data-v="line" data-i18n="byLine"></button>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn" id="sample" type="button" data-i18n="sample"></button>
+            <button class="btn" id="clear" type="button" data-i18n="clear"></button>
+          </div>
+        </div>
+        <div class="two">
+          <label class="field"><span data-i18n="srcLang"></span><select id="srcLang"></select></label>
+          <label class="field"><span data-i18n="tgtLang"></span><select id="tgtLang"></select></label>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="label" data-i18n="settings"></div>
+        <span class="field" data-i18n="readWhat"></span>
+        <div class="seg" role="group" id="readSeg">
+          <button type="button" data-v="orig" data-i18n="rOrig"></button>
+          <button type="button" data-v="both" data-i18n="rBoth"></button>
+          <button type="button" data-v="trans" data-i18n="rTrans"></button>
+        </div>
+        <div class="setting"><label for="rate" data-i18n="rate"></label><output id="rateOut"></output><input type="range" id="rate" min="0.4" max="2" step="0.1" value="1"></div>
+        <div class="setting"><label for="gap" data-i18n="gap"></label><output id="gapOut"></output><input type="range" id="gap" min="0" max="15" step="0.5" value="1.5"></div>
+        <div class="setting"><label for="repeat" data-i18n="repeat"></label><output id="repeatOut"></output><input type="range" id="repeat" min="1" max="10" step="1" value="1"></div>
+        <div class="setting"><label for="repGap" data-i18n="repGap"></label><output id="repGapOut"></output><input type="range" id="repGap" min="0" max="15" step="0.5" value="1"></div>
+      </div>
+
+      <div class="sec">
+        <div class="label" data-i18n="voices"></div>
+        <div class="voices" id="voiceRows"></div>
+        <div class="note" id="voiceNote" hidden></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="listLbl">
+      <div class="tools">
+        <div class="listhead"><div class="label" id="listLbl" data-i18n="sentences"></div><div class="count" id="count"></div></div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="showO" checked><span data-i18n="showOrig"></span></label>
+          <label class="chk"><input type="checkbox" id="showT" checked><span data-i18n="showTrans"></span></label>
+          <label class="chk"><input type="checkbox" id="onlyMarked"><span data-i18n="onlyMarked"></span></label>
+        </div>
+        <div class="markbar">
+          <span class="markcount" id="markCount"></span>
+          <button class="btn pri" id="exportCsv" type="button" data-i18n="exportCsv"></button>
+          <button class="btn" id="copyMarks" type="button" data-i18n="copy"></button>
+          <button class="btn" id="clearMarks" type="button" data-i18n="clearMarks"></button>
+        </div>
+        <div class="toast" id="toast" aria-live="polite"></div>
+        <div class="warn" id="mismatch" hidden></div>
+      </div>
+      <ol id="list"></ol>
+    </section>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="in">
+    <button class="ic" id="prev" type="button">⟨ <span data-i18n="prev"></span></button>
+    <button class="play" id="play" type="button"></button>
+    <button class="ic" id="next" type="button"><span data-i18n="next"></span> ⟩</button>
+    <button class="ic" id="stop" type="button">■ <span data-i18n="stop"></span></button>
+    <label class="chk"><input type="checkbox" id="loop"><span data-i18n="loop"></span></label>
+    <div class="status" id="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const synth = window.speechSynthesis;
+const CODES = ["zh","ja","en","fr","de","es","it"];
+const BCP = {zh:"zh-CN", ja:"ja-JP", en:"en-US", fr:"fr-FR", de:"de-DE", es:"es-ES", it:"it-IT"};
+const TAG = {zh:"中", ja:"日", en:"EN", fr:"FR", de:"DE", es:"ES", it:"IT"};
+
+const I18N = {
+en:{h1:"Readaloud",sub:"A small tool for interpreting practice. Paste text in Chinese, Japanese, English, French, German, Spanish or Italian and your browser reads it aloud sentence by sentence. Tap any sentence to start from there.",
+ uiLang:"Interface language",orig:"Original text",trans:"Translation (optional)",origPh:"Paste or type the text to read…",
+ transPh:"Paste the translation here, in the same order. Sentence 1 pairs with sentence 1, and so on.",
+ splitBy:"Pair by",bySentence:"Sentence",byLine:"Line",clear:"Clear",sample:"Load example",
+ srcLang:"Original language",tgtLang:"Translation language",auto:"Auto-detect",
+ L:{zh:"Chinese",ja:"Japanese",en:"English",fr:"French",de:"German",es:"Spanish",it:"Italian"},
+ settings:"Playback",readWhat:"Read aloud",rOrig:"Original",rBoth:"Original + translation",rTrans:"Translation",
+ rate:"Speed",gap:"Pause between sentences",repeat:"Repeat each sentence",repGap:"Pause between repeats",
+ sec:"{n} s",times:"{n}×",voices:"Voices",sysDefault:"System default",
+ noVoice:"No voice found on this device for: {x}. You can add one in your system's speech settings.",
+ noTTS:"This browser can't read aloud. Try Chrome, Edge or Safari.",
+ sentences:"Sentences",count:"{n} sentences",
+ mismatch:"The original has {a} sentences and the translation has {b}. Check the punctuation, or pair by line.",
+ showOrig:"Show original",showTrans:"Show translation",reveal:"Tap to reveal",noTrans:"No translation",
+ onlyMarked:"Play marked only",marked:"★ Unfamiliar: {n}",markOn:"Mark as unfamiliar",markOff:"Remove mark",
+ exportCsv:"Export CSV",copy:"Copy",clearMarks:"Clear marks",confirmClear:"Remove all unfamiliar marks?",
+ copied:"Copied {n} sentences",exported:"Exported {n} sentences",copyFail:"Couldn't copy. Your browser blocked clipboard access.",
+ noMarks:"No sentences marked yet. Tap ☆ next to a sentence to mark it.",empty:"Sentences appear here once you add text.",
+ noMarkedToPlay:"No marked sentences to play.",prev:"Previous",next:"Next",play:"▶ Play",pause:"❚❚ Pause",stop:"Stop",loop:"Loop",
+ ready:"Ready",done:"Finished",stopped:"Stopped",paused:"Paused at sentence {n}",now:"Sentence {i} of {n}",nowRep:" · repeat {r} of {t}",
+ edited:"Text changed — playback stopped",colNo:"No."},
+zh:{h1:"Readaloud",sub:"口译练习小工具。输入中文、日语、英语、法语、德语、西班牙语或意大利语，浏览器会一句一句朗读。点任意一句可从那里开始。",
+ uiLang:"界面语言",orig:"原文",trans:"译文（可选）",origPh:"在这里粘贴或输入要朗读的内容……",
+ transPh:"在这里粘贴译文，顺序与原文一致：第 1 句对第 1 句，以此类推。",
+ splitBy:"对照方式",bySentence:"按句子",byLine:"按行",clear:"清空",sample:"填入示例",
+ srcLang:"原文语言",tgtLang:"译文语言",auto:"自动识别",
+ L:{zh:"中文",ja:"日语",en:"英语",fr:"法语",de:"德语",es:"西班牙语",it:"意大利语"},
+ settings:"朗读设置",readWhat:"朗读内容",rOrig:"原文",rBoth:"原文 + 译文",rTrans:"译文",
+ rate:"语速",gap:"句间停顿",repeat:"每句重复",repGap:"重复间停顿",
+ sec:"{n} 秒",times:"{n} 遍",voices:"语音",sysDefault:"系统默认",
+ noVoice:"你的设备没有找到以下语言的语音：{x}。可以在系统的语音设置里添加。",
+ noTTS:"这个浏览器不支持语音朗读，请换用 Chrome、Edge 或 Safari。",
+ sentences:"逐句",count:"{n} 句",
+ mismatch:"原文 {a} 句，译文 {b} 句，数量不一致。请检查标点，或改为按行对照。",
+ showOrig:"显示原文",showTrans:"显示译文",reveal:"点击显示",noTrans:"无译文",
+ onlyMarked:"只播放不熟的",marked:"★ 不熟：{n}",markOn:"标为不熟",markOff:"取消标注",
+ exportCsv:"导出 CSV",copy:"复制",clearMarks:"清除标注",confirmClear:"确定清除所有「不熟」标注吗？",
+ copied:"已复制 {n} 句",exported:"已导出 {n} 句",copyFail:"复制失败：浏览器不允许访问剪贴板。",
+ noMarks:"还没有标注。点句子旁边的 ☆ 标为不熟。",empty:"输入文字后，句子会出现在这里。",
+ noMarkedToPlay:"没有标为不熟的句子可以播放。",prev:"上一句",next:"下一句",play:"▶ 播放",pause:"❚❚ 暂停",stop:"停止",loop:"循环",
+ ready:"准备就绪",done:"读完了",stopped:"已停止",paused:"已暂停在第 {n} 句",now:"第 {i} / {n} 句",nowRep:" · 第 {r}/{t} 遍",
+ edited:"文字已修改，已停止播放",colNo:"序号"},
+ja:{h1:"Readaloud",sub:"通訳練習のための小さなツールです。中国語・日本語・英語・フランス語・ドイツ語・スペイン語・イタリア語の文章を入力すると、ブラウザが一文ずつ読み上げます。文をタップするとそこから再生します。",
+ uiLang:"表示言語",orig:"原文",trans:"訳文（任意）",origPh:"読み上げたい文章を貼り付けるか入力してください…",
+ transPh:"訳文を原文と同じ順番で貼り付けてください。1文目は1文目に対応します。",
+ splitBy:"対応の単位",bySentence:"文ごと",byLine:"行ごと",clear:"クリア",sample:"例文を入れる",
+ srcLang:"原文の言語",tgtLang:"訳文の言語",auto:"自動判定",
+ L:{zh:"中国語",ja:"日本語",en:"英語",fr:"フランス語",de:"ドイツ語",es:"スペイン語",it:"イタリア語"},
+ settings:"再生設定",readWhat:"読み上げ",rOrig:"原文",rBoth:"原文＋訳文",rTrans:"訳文",
+ rate:"速度",gap:"文の間隔",repeat:"各文の繰り返し",repGap:"繰り返しの間隔",
+ sec:"{n} 秒",times:"{n} 回",voices:"音声",sysDefault:"システム既定",
+ noVoice:"この端末には次の言語の音声がありません：{x}。システムの音声設定で追加できます。",
+ noTTS:"このブラウザは読み上げに対応していません。Chrome、Edge、Safari をお試しください。",
+ sentences:"文の一覧",count:"{n} 文",
+ mismatch:"原文は {a} 文、訳文は {b} 文で数が合いません。句読点を確認するか、行ごとの対応に切り替えてください。",
+ showOrig:"原文を表示",showTrans:"訳文を表示",reveal:"タップで表示",noTrans:"訳文なし",
+ onlyMarked:"苦手な文だけ再生",marked:"★ 苦手：{n}",markOn:"苦手に登録",markOff:"登録を解除",
+ exportCsv:"CSV を書き出す",copy:"コピー",clearMarks:"登録をすべて解除",confirmClear:"苦手の登録をすべて解除しますか？",
+ copied:"{n} 文をコピーしました",exported:"{n} 文を書き出しました",copyFail:"コピーできませんでした。ブラウザがクリップボードへのアクセスをブロックしています。",
+ noMarks:"まだ登録がありません。文の横の ☆ をタップして登録します。",empty:"文章を入力すると、ここに文が表示されます。",
+ noMarkedToPlay:"再生できる苦手な文がありません。",prev:"前へ",next:"次へ",play:"▶ 再生",pause:"❚❚ 一時停止",stop:"停止",loop:"ループ",
+ ready:"準備完了",done:"読み終わりました",stopped:"停止しました",paused:"{n} 文目で一時停止",now:"{i} / {n} 文目",nowRep:" · {r}/{t} 回目",
+ edited:"文章が変更されたため停止しました",colNo:"番号"},
+fr:{h1:"Readaloud",sub:"Un petit outil pour s'entraîner à l'interprétation. Collez un texte en chinois, japonais, anglais, français, allemand, espagnol ou italien : votre navigateur le lit à voix haute, phrase par phrase. Touchez une phrase pour commencer à partir de celle-ci.",
+ uiLang:"Langue de l'interface",orig:"Texte original",trans:"Traduction (facultatif)",origPh:"Collez ou saisissez le texte à lire…",
+ transPh:"Collez la traduction ici, dans le même ordre : la phrase 1 correspond à la phrase 1, et ainsi de suite.",
+ splitBy:"Associer par",bySentence:"Phrase",byLine:"Ligne",clear:"Effacer",sample:"Charger un exemple",
+ srcLang:"Langue d'origine",tgtLang:"Langue de la traduction",auto:"Détection auto",
+ L:{zh:"Chinois",ja:"Japonais",en:"Anglais",fr:"Français",de:"Allemand",es:"Espagnol",it:"Italien"},
+ settings:"Lecture",readWhat:"Lire à voix haute",rOrig:"Original",rBoth:"Original + traduction",rTrans:"Traduction",
+ rate:"Vitesse",gap:"Pause entre les phrases",repeat:"Répéter chaque phrase",repGap:"Pause entre les répétitions",
+ sec:"{n} s",times:"{n} fois",voices:"Voix",sysDefault:"Voix par défaut",
+ noVoice:"Aucune voix trouvée sur cet appareil pour : {x}. Vous pouvez en ajouter dans les réglages vocaux du système.",
+ noTTS:"Ce navigateur ne peut pas lire à voix haute. Essayez Chrome, Edge ou Safari.",
+ sentences:"Phrases",count:"{n} phrases",
+ mismatch:"L'original compte {a} phrases et la traduction {b}. Vérifiez la ponctuation ou associez par ligne.",
+ showOrig:"Afficher l'original",showTrans:"Afficher la traduction",reveal:"Touchez pour afficher",noTrans:"Pas de traduction",
+ onlyMarked:"Lire seulement les phrases marquées",marked:"★ À revoir : {n}",markOn:"Marquer à revoir",markOff:"Retirer la marque",
+ exportCsv:"Exporter en CSV",copy:"Copier",clearMarks:"Effacer les marques",confirmClear:"Retirer toutes les marques « à revoir » ?",
+ copied:"{n} phrases copiées",exported:"{n} phrases exportées",copyFail:"Copie impossible : le navigateur bloque l'accès au presse-papiers.",
+ noMarks:"Aucune phrase marquée. Touchez ☆ à côté d'une phrase pour la marquer.",empty:"Les phrases s'affichent ici une fois le texte ajouté.",
+ noMarkedToPlay:"Aucune phrase marquée à lire.",prev:"Précédente",next:"Suivante",play:"▶ Lire",pause:"❚❚ Pause",stop:"Arrêter",loop:"En boucle",
+ ready:"Prêt",done:"Terminé",stopped:"Arrêté",paused:"En pause à la phrase {n}",now:"Phrase {i} sur {n}",nowRep:" · répétition {r} sur {t}",
+ edited:"Texte modifié — lecture arrêtée",colNo:"N°"},
+de:{h1:"Readaloud",sub:"Ein kleines Werkzeug fürs Dolmetschtraining. Füge Text auf Chinesisch, Japanisch, Englisch, Französisch, Deutsch, Spanisch oder Italienisch ein – dein Browser liest ihn Satz für Satz vor. Tippe auf einen Satz, um dort zu beginnen.",
+ uiLang:"Sprache der Oberfläche",orig:"Originaltext",trans:"Übersetzung (optional)",origPh:"Text zum Vorlesen einfügen oder eingeben…",
+ transPh:"Füge hier die Übersetzung in derselben Reihenfolge ein: Satz 1 gehört zu Satz 1 usw.",
+ splitBy:"Zuordnen nach",bySentence:"Satz",byLine:"Zeile",clear:"Leeren",sample:"Beispiel laden",
+ srcLang:"Ausgangssprache",tgtLang:"Sprache der Übersetzung",auto:"Automatisch",
+ L:{zh:"Chinesisch",ja:"Japanisch",en:"Englisch",fr:"Französisch",de:"Deutsch",es:"Spanisch",it:"Italienisch"},
+ settings:"Wiedergabe",readWhat:"Vorlesen",rOrig:"Original",rBoth:"Original + Übersetzung",rTrans:"Übersetzung",
+ rate:"Tempo",gap:"Pause zwischen Sätzen",repeat:"Jeden Satz wiederholen",repGap:"Pause zwischen Wiederholungen",
+ sec:"{n} s",times:"{n}×",voices:"Stimmen",sysDefault:"Systemstandard",
+ noVoice:"Auf diesem Gerät wurde keine Stimme gefunden für: {x}. Du kannst sie in den Spracheinstellungen des Systems hinzufügen.",
+ noTTS:"Dieser Browser kann nicht vorlesen. Versuche Chrome, Edge oder Safari.",
+ sentences:"Sätze",count:"{n} Sätze",
+ mismatch:"Das Original hat {a} Sätze, die Übersetzung {b}. Prüfe die Satzzeichen oder ordne nach Zeilen zu.",
+ showOrig:"Original zeigen",showTrans:"Übersetzung zeigen",reveal:"Zum Anzeigen tippen",noTrans:"Keine Übersetzung",
+ onlyMarked:"Nur markierte abspielen",marked:"★ Unsicher: {n}",markOn:"Als unsicher markieren",markOff:"Markierung entfernen",
+ exportCsv:"Als CSV exportieren",copy:"Kopieren",clearMarks:"Markierungen löschen",confirmClear:"Alle Markierungen entfernen?",
+ copied:"{n} Sätze kopiert",exported:"{n} Sätze exportiert",copyFail:"Kopieren nicht möglich: Der Browser blockiert die Zwischenablage.",
+ noMarks:"Noch nichts markiert. Tippe auf ☆ neben einem Satz, um ihn zu markieren.",empty:"Sobald du Text eingibst, erscheinen hier die Sätze.",
+ noMarkedToPlay:"Keine markierten Sätze zum Abspielen.",prev:"Zurück",next:"Weiter",play:"▶ Abspielen",pause:"❚❚ Pause",stop:"Stopp",loop:"Endlos",
+ ready:"Bereit",done:"Fertig",stopped:"Gestoppt",paused:"Pausiert bei Satz {n}",now:"Satz {i} von {n}",nowRep:" · Wiederholung {r} von {t}",
+ edited:"Text geändert – Wiedergabe gestoppt",colNo:"Nr."},
+es:{h1:"Readaloud",sub:"Una pequeña herramienta para practicar interpretación. Pega un texto en chino, japonés, inglés, francés, alemán, español o italiano y tu navegador lo leerá en voz alta, frase por frase. Toca cualquier frase para empezar desde ahí.",
+ uiLang:"Idioma de la interfaz",orig:"Texto original",trans:"Traducción (opcional)",origPh:"Pega o escribe el texto que quieres escuchar…",
+ transPh:"Pega aquí la traducción en el mismo orden: la frase 1 va con la frase 1, y así sucesivamente.",
+ splitBy:"Emparejar por",bySentence:"Frase",byLine:"Línea",clear:"Borrar",sample:"Cargar ejemplo",
+ srcLang:"Idioma original",tgtLang:"Idioma de la traducción",auto:"Detección automática",
+ L:{zh:"Chino",ja:"Japonés",en:"Inglés",fr:"Francés",de:"Alemán",es:"Español",it:"Italiano"},
+ settings:"Reproducción",readWhat:"Leer en voz alta",rOrig:"Original",rBoth:"Original + traducción",rTrans:"Traducción",
+ rate:"Velocidad",gap:"Pausa entre frases",repeat:"Repetir cada frase",repGap:"Pausa entre repeticiones",
+ sec:"{n} s",times:"{n} veces",voices:"Voces",sysDefault:"Predeterminada del sistema",
+ noVoice:"No se encontró ninguna voz en este dispositivo para: {x}. Puedes añadirla en los ajustes de voz del sistema.",
+ noTTS:"Este navegador no puede leer en voz alta. Prueba con Chrome, Edge o Safari.",
+ sentences:"Frases",count:"{n} frases",
+ mismatch:"El original tiene {a} frases y la traducción {b}. Revisa la puntuación o empareja por línea.",
+ showOrig:"Mostrar original",showTrans:"Mostrar traducción",reveal:"Toca para mostrar",noTrans:"Sin traducción",
+ onlyMarked:"Reproducir solo las marcadas",marked:"★ Por repasar: {n}",markOn:"Marcar para repasar",markOff:"Quitar marca",
+ exportCsv:"Exportar CSV",copy:"Copiar",clearMarks:"Borrar marcas",confirmClear:"¿Quitar todas las marcas de «por repasar»?",
+ copied:"{n} frases copiadas",exported:"{n} frases exportadas",copyFail:"No se pudo copiar: el navegador bloqueó el acceso al portapapeles.",
+ noMarks:"Todavía no hay frases marcadas. Toca ☆ junto a una frase para marcarla.",empty:"Las frases aparecerán aquí cuando añadas texto.",
+ noMarkedToPlay:"No hay frases marcadas para reproducir.",prev:"Anterior",next:"Siguiente",play:"▶ Reproducir",pause:"❚❚ Pausa",stop:"Detener",loop:"En bucle",
+ ready:"Listo",done:"Terminado",stopped:"Detenido",paused:"En pausa en la frase {n}",now:"Frase {i} de {n}",nowRep:" · repetición {r} de {t}",
+ edited:"Texto modificado: reproducción detenida",colNo:"N.º"},
+it:{h1:"Readaloud",sub:"Un piccolo strumento per esercitarsi nell'interpretariato. Incolla un testo in cinese, giapponese, inglese, francese, tedesco, spagnolo o italiano e il browser lo leggerà ad alta voce, frase per frase. Tocca una frase per iniziare da lì.",
+ uiLang:"Lingua dell'interfaccia",orig:"Testo originale",trans:"Traduzione (facoltativa)",origPh:"Incolla o scrivi il testo da leggere…",
+ transPh:"Incolla qui la traduzione nello stesso ordine: la frase 1 corrisponde alla frase 1, e così via.",
+ splitBy:"Abbina per",bySentence:"Frase",byLine:"Riga",clear:"Cancella",sample:"Carica un esempio",
+ srcLang:"Lingua originale",tgtLang:"Lingua della traduzione",auto:"Rilevamento automatico",
+ L:{zh:"Cinese",ja:"Giapponese",en:"Inglese",fr:"Francese",de:"Tedesco",es:"Spagnolo",it:"Italiano"},
+ settings:"Riproduzione",readWhat:"Leggi ad alta voce",rOrig:"Originale",rBoth:"Originale + traduzione",rTrans:"Traduzione",
+ rate:"Velocità",gap:"Pausa tra le frasi",repeat:"Ripeti ogni frase",repGap:"Pausa tra le ripetizioni",
+ sec:"{n} s",times:"{n} volte",voices:"Voci",sysDefault:"Predefinita di sistema",
+ noVoice:"Nessuna voce trovata su questo dispositivo per: {x}. Puoi aggiungerla nelle impostazioni vocali del sistema.",
+ noTTS:"Questo browser non può leggere ad alta voce. Prova Chrome, Edge o Safari.",
+ sentences:"Frasi",count:"{n} frasi",
+ mismatch:"L'originale ha {a} frasi e la traduzione {b}. Controlla la punteggiatura o abbina per riga.",
+ showOrig:"Mostra originale",showTrans:"Mostra traduzione",reveal:"Tocca per mostrare",noTrans:"Nessuna traduzione",
+ onlyMarked:"Riproduci solo le frasi segnate",marked:"★ Da ripassare: {n}",markOn:"Segna da ripassare",markOff:"Rimuovi segno",
+ exportCsv:"Esporta CSV",copy:"Copia",clearMarks:"Cancella segni",confirmClear:"Rimuovere tutti i segni «da ripassare»?",
+ copied:"{n} frasi copiate",exported:"{n} frasi esportate",copyFail:"Impossibile copiare: il browser blocca l'accesso agli appunti.",
+ noMarks:"Nessuna frase segnata. Tocca ☆ accanto a una frase per segnarla.",empty:"Le frasi appariranno qui quando aggiungi del testo.",
+ noMarkedToPlay:"Nessuna frase segnata da riprodurre.",prev:"Precedente",next:"Successiva",play:"▶ Riproduci",pause:"❚❚ Pausa",stop:"Stop",loop:"Ciclo continuo",
+ ready:"Pronto",done:"Finito",stopped:"Interrotto",paused:"In pausa alla frase {n}",now:"Frase {i} di {n}",nowRep:" · ripetizione {r} di {t}",
+ edited:"Testo modificato: riproduzione interrotta",colNo:"N."}
+};
+const SAMPLE_FR = "Bonjour, je m'appelle Léa. J'habite à Lyon depuis trois ans. Est-ce que tu veux prendre un café avec moi ?";
+const SAMPLE_DE = "Hallo, ich heiße Léa. Ich wohne seit drei Jahren in Lyon. Möchtest du mit mir einen Kaffee trinken?";
+const SAMPLE_T = {
+  en:"Hello, my name is Léa. I've lived in Lyon for three years. Would you like to have a coffee with me?",
+  zh:"你好，我叫 Léa。我在里昂住了三年了。你想和我一起喝杯咖啡吗？",
+  ja:"こんにちは、私はレアです。リヨンに住んで三年になります。一緒にコーヒーを飲みませんか？",
+  fr:SAMPLE_FR, de:SAMPLE_DE,
+  es:"Hola, me llamo Léa. Vivo en Lyon desde hace tres años. ¿Quieres tomar un café conmigo?",
+  it:"Ciao, mi chiamo Léa. Vivo a Lione da tre anni. Ti va di prendere un caffè con me?"
+};
+
+// ---------- state ----------
+const S = {ui:"en", split:"sentence", src:"auto", tgt:"auto", read:"orig", showO:true, showT:true, onlyMarked:false, loop:false};
+let items = [], current = 0, runId = 0, playing = false, keep = [], marks = {};
+const els = {text:$("text"), trans:$("trans"), list:$("list"), status:$("status"), play:$("play"),
+  rate:$("rate"), gap:$("gap"), repeat:$("repeat"), repGap:$("repGap")};
+
+const t = (k, v) => { let s = (I18N[S.ui][k] ?? I18N.en[k] ?? k); if (v) for (const x in v) s = s.split("{"+x+"}").join(v[x]); return s; };
+const langName = c => I18N[S.ui].L[c];
+
+// ---------- storage ----------
+const KEY = "polyreader.v2", MKEY = "polyreader.marks";
+function loadJSON(k){ try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } }
+function save(){ try{
+  const voices = {}; CODES.forEach(c => { const s = $("v"+c); if (s) voices[c] = s.value; });
+  localStorage.setItem(KEY, JSON.stringify(Object.assign({}, S, {text:els.text.value, trans:els.trans.value,
+    rate:els.rate.value, gap:els.gap.value, repeat:els.repeat.value, repGap:els.repGap.value, voices})));
+}catch(e){} }
+function saveMarks(){ try{ localStorage.setItem(MKEY, JSON.stringify(marks)); }catch(e){} }
+const saved = loadJSON(KEY);
+marks = loadJSON(MKEY) || {};
+
+// ---------- splitting & detection ----------
+function split(text){
+  const out = [];
+  text.split(/\n+/).forEach(line => {
+    if (S.split === "line"){ const s = line.trim(); if (s && /[\p{L}\p{N}]/u.test(s)) out.push(s); return; }
+    const re = /[^。！？!?；;…]+(?:[。！？!?；;…]+[」』”"'’）)»]*)?|[。！？!?；;…]+/g;
+    (line.match(re) || []).forEach(chunk => {
+      chunk.split(/(?<=[\p{L}\p{N}"'’)\]»][.](?=\s+[\p{Lu}"'(«¿¡]))/u).forEach(p => {
+        const s = p.trim();
+        if (!s) return;
+        if (!/[\p{L}\p{N}]/u.test(s) && out.length) out[out.length-1] += s; // stray punctuation joins previous
+        else if (/[\p{L}\p{N}]/u.test(s)) out.push(s);
+      });
+    });
+  });
+  return out;
+}
+const W = {
+  en:/\b(the|is|are|and|you|to|of|it|that|this|what|with|have|was|for|my|i'm|don't|would|like)\b/g,
+  fr:/\b(le|la|les|des|est|et|je|tu|vous|nous|une|pas|que|qui|dans|pour|avec|c'est|très|mon|ma|au|du|j'|l'|d')/g,
+  de:/\b(der|die|das|und|ist|ich|nicht|ein|eine|zu|mit|sie|wir|auch|es|den|dem|sehr|du|mein|haben|bin)\b/g,
+  es:/(^|[^\p{L}])(el|los|las|es|y|que|en|una|no|por|con|para|muy|está|estoy|soy|tengo|quieres|hola|pero|como|yo|mi|del|al|se|lo)(?![\p{L}])/gu,
+  it:/(^|[^\p{L}])(il|gli|è|e|che|di|non|per|con|sono|ho|ciao|della|molto|vuoi|questo|questa|io|mi|anche|come|ma|nel|alla|un'|l')(?![\p{L}])/gu
+};
+function detect(s){
+  if (/[぀-ヿㇰ-ㇿ]/.test(s)) return "ja";
+  const han = (s.match(/[㐀-䶿一-鿿]/g) || []).length;
+  const lat = (s.match(/[A-Za-zÀ-ÿœŒß]/g) || []).length;
+  if (han && han * 2 >= lat) return "zh";
+  if (!lat) return "zh";
+  const low = s.toLowerCase();
+  const sc = {en:(low.match(W.en)||[]).length, fr:(low.match(W.fr)||[]).length*1.1, de:(low.match(W.de)||[]).length*1.1,
+    es:(low.match(W.es)||[]).length, it:(low.match(W.it)||[]).length};
+  sc.fr += (low.match(/[éêëâîïôûçœæ]/g)||[]).length * 1.5 + (low.match(/[èàù]/g)||[]).length * 0.5;
+  sc.es += (low.match(/[ñ¿¡]/g)||[]).length * 3 + (low.match(/[áíóú]/g)||[]).length * 1.5;
+  sc.it += (low.match(/[ìò]/g)||[]).length * 2 + (low.match(/[èàù]/g)||[]).length * 0.6;
+  sc.de += (low.match(/[äöüß]/g)||[]).length * 2;
+  return Object.keys(sc).reduce((a,b) => sc[b] > sc[a] ? b : a, "en");
+}
+const srcOf = s => S.src === "auto" ? detect(s) : S.src;
+const tgtOf = s => S.tgt === "auto" ? detect(s) : S.tgt;
+
+// ---------- i18n ----------
+function applyUI(){
+  document.documentElement.lang = {zh:"zh-CN", ja:"ja", en:"en", fr:"fr", de:"de", es:"es", it:"it"}[S.ui];
+  document.querySelectorAll("[data-i18n]").forEach(e => e.textContent = t(e.dataset.i18n));
+  document.querySelectorAll("[data-i18n-ph]").forEach(e => e.placeholder = t(e.dataset.i18nPh));
+  document.querySelectorAll("[data-i18n-aria]").forEach(e => e.setAttribute("aria-label", t(e.dataset.i18nAria)));
+  ["srcLang","tgtLang"].forEach(id => {
+    const sel = $(id), val = id === "srcLang" ? S.src : S.tgt;
+    sel.innerHTML = '<option value="auto">'+t("auto")+'</option>' + CODES.map(c => '<option value="'+c+'">'+langName(c)+'</option>').join("");
+    sel.value = val;
+  });
+  $("uiLang").value = S.ui;
+  segs(); outputs(); fillVoices(); render(); updateMarkCount(); setPlayBtn();
+  if (!playing) els.status.textContent = t("ready");
+}
+function segs(){
+  [["splitSeg","split"],["readSeg","read"]].forEach(([id,k]) => [...$(id).children].forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S[k])));
+}
+
+// ---------- render ----------
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function render(){
+  const os = split(els.text.value), ts = split(els.trans.value);
+  items = os.map((o,i) => ({o, t: ts[i] || "", ol: srcOf(o), tl: ts[i] ? tgtOf(ts[i]) : null}));
+  // refresh stored translations for marked sentences
+  let changed = false;
+  items.forEach(it => { const m = marks[it.o]; if (m && (m.t !== it.t || m.ol !== it.ol || m.tl !== it.tl)){ m.t = it.t; m.ol = it.ol; m.tl = it.tl; changed = true; } });
+  if (changed) saveMarks();
+  if (current >= items.length) current = 0;
+  $("count").textContent = items.length ? t("count", {n: items.length}) : "";
+  const mm = $("mismatch");
+  if (ts.length && ts.length !== os.length){ mm.textContent = t("mismatch", {a: os.length, b: ts.length}); mm.hidden = false; } else mm.hidden = true;
+  const list = els.list; list.innerHTML = "";
+  if (!items.length){ list.innerHTML = '<li class="empty">'+esc(t("empty"))+'</li>'; return; }
+  const hasTrans = ts.length > 0;
+  items.forEach((it,i) => {
+    const li = document.createElement("li");
+    li.tabIndex = 0; li.dataset.i = i;
+    const m = !!marks[it.o];
+    if (S.onlyMarked && !m) li.classList.add("dim");
+    li.innerHTML =
+      '<span class="n">'+String(i+1).padStart(2,"0")+'</span>'+
+      '<div class="texts"><div class="o'+(S.showO?'':' veil')+'" lang="'+BCP[it.ol]+'">'+esc(it.o)+'</div>'+
+      (hasTrans ? '<div class="t'+(it.t?'':' missing')+(S.showT||!it.t?'':' veil')+'"'+(it.tl?' lang="'+BCP[it.tl]+'"':'')+'>'+esc(it.t || t("noTrans"))+'</div>' : '')+'</div>'+
+      '<div class="side"><button type="button" class="star" aria-pressed="'+m+'" aria-label="'+esc(t(m?"markOff":"markOn"))+'" title="'+esc(t(m?"markOff":"markOn"))+'">'+(m?"★":"☆")+'</button>'+
+      '<div class="tags"><span class="tag '+it.ol+'">'+TAG[it.ol]+'</span>'+(it.tl?'<span class="tag '+it.tl+'">'+TAG[it.tl]+'</span>':'')+'</div></div>';
+    li.querySelectorAll(".veil").forEach(v => { v.title = t("reveal"); });
+    li.addEventListener("click", e => {
+      if (e.target.closest(".star")){ toggleMark(i); return; }
+      const v = e.target.closest(".veil"); if (v){ v.classList.remove("veil"); return; }
+      start(i);
+    });
+    li.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target === li){ e.preventDefault(); start(i); } });
+    list.appendChild(li);
+  });
+  mark(current, playing);
+}
+function mark(i, on, rep, part){
+  [...els.list.children].forEach(li => { li.classList.remove("now"); const r = li.querySelector(".rep"); if (r) r.remove(); li.querySelectorAll(".speaking").forEach(x => x.classList.remove("speaking")); });
+  const li = els.list.children[i];
+  if (!li || li.dataset.i == null || !on) return;
+  li.classList.add("now");
+  if (rep){ const r = document.createElement("span"); r.className = "rep"; r.textContent = rep; li.querySelector(".n").appendChild(r); }
+  if (part){ const p = li.querySelector(part === "o" ? ".o" : ".t"); if (p) p.classList.add("speaking"); }
+  const b = li.getBoundingClientRect();
+  if (b.top < 60 || b.bottom > innerHeight - 120) li.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+
+// ---------- marks ----------
+function toggleMark(i){
+  const it = items[i];
+  if (marks[it.o]) delete marks[it.o];
+  else marks[it.o] = {o: it.o, t: it.t, ol: it.ol, tl: it.tl, at: Date.now()};
+  saveMarks(); updateMarkCount();
+  const li = els.list.children[i], m = !!marks[it.o], b = li.querySelector(".star");
+  b.setAttribute("aria-pressed", m); b.textContent = m ? "★" : "☆";
+  b.title = t(m ? "markOff" : "markOn"); b.setAttribute("aria-label", b.title);
+  li.classList.toggle("dim", S.onlyMarked && !m);
+}
+const markList = () => Object.values(marks).sort((a,b) => a.at - b.at);
+function updateMarkCount(){
+  const n = Object.keys(marks).length;
+  $("markCount").textContent = t("marked", {n});
+  ["exportCsv","copyMarks","clearMarks"].forEach(id => $(id).disabled = !n);
+}
+let toastT;
+function toast(msg){ const e = $("toast"); e.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => e.textContent = "", 4000); }
+function csvCell(v){ v = v == null ? "" : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; }
+$("exportCsv").addEventListener("click", () => {
+  const rows = markList();
+  if (!rows.length){ toast(t("noMarks")); return; }
+  const head = [t("colNo"), t("srcLang"), t("rOrig"), t("tgtLang"), t("rTrans")];
+  const lines = [head].concat(rows.map((m,i) => [i+1, langName(m.ol), m.o, m.tl ? langName(m.tl) : "", m.t || ""])).map(r => r.map(csvCell).join(","));
+  const blob = new Blob(["﻿" + lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  const d = new Date(), pad = n => String(n).padStart(2,"0");
+  a.href = URL.createObjectURL(blob);
+  a.download = "readaloud-unfamiliar-" + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast(t("exported", {n: rows.length}));
+});
+$("copyMarks").addEventListener("click", async () => {
+  const rows = markList();
+  if (!rows.length){ toast(t("noMarks")); return; }
+  const text = rows.map((m,i) => (i+1) + ". " + m.o + (m.t ? "\n   " + m.t : "")).join("\n\n");
+  let ok = false;
+  try{ await navigator.clipboard.writeText(text); ok = true; }catch(e){
+    try{ const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy"); ta.remove(); }catch(e2){}
+  }
+  toast(ok ? t("copied", {n: rows.length}) : t("copyFail"));
+});
+$("clearMarks").addEventListener("click", () => {
+  if (!Object.keys(marks).length) return;
+  if (!confirm(t("confirmClear"))) return;
+  marks = {}; saveMarks(); updateMarkCount(); render();
+});
+
+// ---------- voices ----------
+function fillVoices(){
+  const all = synth ? synth.getVoices() : [];
+  const rows = $("voiceRows"), note = $("voiceNote"), missing = [];
+  const prevVals = {}; CODES.forEach(c => { const s = $("v"+c); prevVals[c] = s ? s.value : ((saved && saved.voices && saved.voices[c]) || ""); });
+  rows.innerHTML = "";
+  CODES.forEach(c => {
+    const vs = all.filter(v => v.lang.replace("_","-").toLowerCase().startsWith(c));
+    const lab = document.createElement("span"); lab.textContent = langName(c); lab.style.color = "var(--"+c+")";
+    const sel = document.createElement("select"); sel.id = "v"+c; sel.setAttribute("aria-label", t("voices") + " – " + langName(c));
+    sel.innerHTML = '<option value="">'+esc(t("sysDefault"))+'</option>' + vs.map(v => '<option value="'+encodeURIComponent(v.voiceURI)+'">'+esc(v.name)+' ('+esc(v.lang)+')</option>').join("");
+    const prev = prevVals[c];
+    if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    else if (vs.length){
+      const main = BCP[c].toLowerCase();
+      const pick = vs.find(v => v.lang.replace("_","-").toLowerCase() === main && /natural|neural|premium|enhanced|google/i.test(v.name)) || vs.find(v => v.lang.replace("_","-").toLowerCase() === main) || vs[0];
+      sel.value = encodeURIComponent(pick.voiceURI);
+    }
+    sel.addEventListener("change", save);
+    rows.appendChild(lab); rows.appendChild(sel);
+    if (all.length && !vs.length) missing.push(langName(c));
+  });
+  if (!synth){ note.textContent = t("noTTS"); note.hidden = false; }
+  else if (missing.length){ note.textContent = t("noVoice", {x: missing.join(", ")}); note.hidden = false; }
+  else note.hidden = true;
+}
+function voiceFor(L){
+  const s = $("v"+L); const id = s && s.value ? decodeURIComponent(s.value) : "";
+  return id ? synth.getVoices().find(v => v.voiceURI === id) : null;
+}
+
+// ---------- playback ----------
+function wait(ms, id){
+  return new Promise(r => {
+    if (ms <= 0) return r();
+    const end = Date.now() + ms;
+    const tick = setInterval(() => { if (id !== runId || Date.now() >= end){ clearInterval(tick); r(); } }, 50);
+  });
+}
+function speak(text, L, id){
+  return new Promise(resolve => {
+    if (id !== runId) return resolve();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = BCP[L]; const v = voiceFor(L); if (v) u.voice = v;
+    u.rate = parseFloat(els.rate.value);
+    let done = false, started = Date.now();
+    const fin = () => { if (!done){ done = true; clearInterval(guard); resolve(); } };
+    u.onend = fin; u.onerror = fin;
+    const guard = setInterval(() => { if (id !== runId || (Date.now() - started > 800 && !synth.speaking && !synth.pending)) fin(); }, 300);
+    keep.push(u); if (keep.length > 20) keep.shift();
+    synth.speak(u);
+  });
+}
+function partsOf(it){
+  const P = [];
+  if (S.read !== "trans" || !it.t) P.push({k:"o", text: it.o, lang: it.ol});
+  if (S.read !== "orig" && it.t) P.push({k:"t", text: it.t, lang: it.tl});
+  return P;
+}
+function playable(){ return items.map((_,i) => i).filter(i => !S.onlyMarked || marks[items[i].o]); }
+async function run(from){
+  const order = playable();
+  if (!order.length){ els.status.textContent = t(S.onlyMarked ? "noMarkedToPlay" : "ready"); return; }
+  const id = ++runId; synth.cancel();
+  playing = true; setPlayBtn();
+  let pos = order.findIndex(i => i >= from); if (pos < 0) pos = 0;
+  while (id === runId){
+    if (pos >= order.length){ if (S.loop) pos = 0; else break; }
+    const i = order[pos]; current = i;
+    const it = items[i], parts = partsOf(it), reps = parseInt(els.repeat.value, 10);
+    for (let r = 1; r <= reps && id === runId; r++){
+      for (let p = 0; p < parts.length && id === runId; p++){
+        mark(i, true, reps > 1 ? r + "/" + reps : "", parts[p].k);
+        els.status.textContent = t("now", {i: i+1, n: items.length}) + (reps > 1 ? t("nowRep", {r, t: reps}) : "");
+        await speak(parts[p].text, parts[p].lang, id);
+        if (p < parts.length - 1) await wait(Math.max(0.4, parseFloat(els.repGap.value)) * 1000, id);
+      }
+      if (r < reps) await wait(parseFloat(els.repGap.value) * 1000, id);
+    }
+    if (id !== runId) return;
+    if (pos + 1 < order.length || S.loop) await wait(parseFloat(els.gap.value) * 1000, id);
+    pos++;
+  }
+  if (id === runId){ playing = false; setPlayBtn(); mark(-1); current = order[0] || 0; els.status.textContent = t("done"); }
+}
+function start(i){ if (!synth || !items.length) return; run(Math.max(0, Math.min(i, items.length - 1))); }
+function halt(msg){ runId++; if (synth) synth.cancel(); playing = false; setPlayBtn(); if (msg) els.status.textContent = msg; }
+function setPlayBtn(){ els.play.textContent = t(playing ? "pause" : "play"); }
+function step(d){
+  const order = playable(); if (!order.length) return;
+  let pos = order.indexOf(current);
+  if (pos < 0) pos = d > 0 ? order.findIndex(i => i > current) : [...order].reverse().findIndex(i => i < current) >= 0 ? order.length - 1 - [...order].reverse().findIndex(i => i < current) : 0;
+  else pos = Math.max(0, Math.min(order.length - 1, pos + d));
+  if (pos < 0) pos = order.length - 1;
+  current = order[pos];
+  if (playing) start(current); else mark(current, true);
+}
+els.play.addEventListener("click", () => { if (playing){ halt(t("paused", {n: current+1})); mark(current, true); } else start(current); });
+$("stop").addEventListener("click", () => { halt(t("stopped")); current = 0; mark(-1); });
+$("prev").addEventListener("click", () => step(-1));
+$("next").addEventListener("click", () => step(1));
+
+// ---------- settings ----------
+function outputs(){
+  $("rateOut").textContent = parseFloat(els.rate.value).toFixed(1) + "×";
+  $("gapOut").textContent = t("sec", {n: parseFloat(els.gap.value).toFixed(1)});
+  $("repeatOut").textContent = t("times", {n: els.repeat.value});
+  $("repGapOut").textContent = t("sec", {n: parseFloat(els.repGap.value).toFixed(1)});
+}
+["rate","gap","repeat","repGap"].forEach(k => els[k].addEventListener("input", () => { outputs(); save(); }));
+$("loop").addEventListener("change", e => { S.loop = e.target.checked; save(); });
+$("showO").addEventListener("change", e => { S.showO = e.target.checked; render(); save(); });
+$("showT").addEventListener("change", e => { S.showT = e.target.checked; render(); save(); });
+$("onlyMarked").addEventListener("change", e => { S.onlyMarked = e.target.checked; if (playing) halt(t("stopped")); render(); save(); });
+$("uiLang").addEventListener("change", e => { S.ui = e.target.value; applyUI(); save(); });
+$("srcLang").addEventListener("change", e => { S.src = e.target.value; render(); save(); });
+$("tgtLang").addEventListener("change", e => { S.tgt = e.target.value; render(); save(); });
+$("splitSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.split = b.dataset.v; segs(); if (playing) halt(t("stopped")); current = 0; render(); save(); });
+$("readSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.read = b.dataset.v; segs(); save(); });
+let tmr;
+[els.text, els.trans].forEach(ta => ta.addEventListener("input", () => {
+  if (playing) halt(t("edited"));
+  clearTimeout(tmr); tmr = setTimeout(() => { render(); save(); }, 250);
+}));
+function loadSample(){
+  halt(t("ready"));
+  els.text.value = S.ui === "fr" ? SAMPLE_DE : SAMPLE_FR;
+  els.trans.value = SAMPLE_T[S.ui];
+  current = 0; render(); save();
+}
+$("sample").addEventListener("click", loadSample);
+$("clear").addEventListener("click", () => { halt(t("ready")); els.text.value = ""; els.trans.value = ""; current = 0; render(); save(); els.text.focus(); });
+
+// ---------- init ----------
+if (saved){
+  ["ui","split","src","tgt","read","showO","showT","onlyMarked","loop"].forEach(k => { if (saved[k] != null) S[k] = saved[k]; });
+  if (!I18N[S.ui]) S.ui = "en";
+  els.text.value = saved.text || ""; els.trans.value = saved.trans || "";
+  ["rate","gap","repeat","repGap"].forEach(k => { if (saved[k] != null) els[k].value = saved[k]; });
+}
+$("loop").checked = S.loop; $("showO").checked = S.showO; $("showT").checked = S.showT; $("onlyMarked").checked = S.onlyMarked;
+if (!saved || (!els.text.value && saved.text == null)){ els.text.value = SAMPLE_FR; els.trans.value = SAMPLE_T[S.ui]; }
+applyUI();
+if (synth && "onvoiceschanged" in synth) synth.onvoiceschanged = fillVoices;
+setTimeout(fillVoices, 600);
+})();
+</script>
+</body>
+</html>
